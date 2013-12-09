@@ -4,7 +4,7 @@ from collections import defaultdict
 is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
 
 @profile
-def n_grams(text_buffer, N):
+def n_grams(text_buffer, N, top):
     text = ''.join([w for w in ''.join([l.decode('utf-8') for l in iter(text_buffer)]) if is_zh(w)])
     cnt = defaultdict(int)
     p = [defaultdict(float) for x in range(0, N)]
@@ -21,7 +21,7 @@ def n_grams(text_buffer, N):
                 cnt[sub] = text.count(sub)
                 p[i][sub] = cnt[sub]/float(cnt[sub[:-1]])*p[i-1][sub[:-1]]
     for i in range(0, N):
-        for pr in sorted(p[i], key=lambda x: p[i][x])[:3]:
-            print pr, p[i][pr]
+        for pr in sorted(p[i], key=lambda x: p[i][x], reverse=True)[:top]:
+            print pr, p[i][pr], cnt[pr]
 
-n_grams(open(sys.argv[1], "r"), int(sys.argv[2]))
+n_grams(open(sys.argv[1], "r"), int(sys.argv[2]), int(sys.argv[3]))
