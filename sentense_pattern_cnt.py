@@ -10,7 +10,10 @@ grammar_map = {'S': ['N'], 'P': ['V','A'], 'O': ['N']}
 
 def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
     #text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
-    text = ''.join([w for w in ''.join([l for l in text_buffer])])
+    if not isinstance(text_buffer, str):
+        text = ''.join([w for w in ''.join([l for l in text_buffer])])
+    else:
+        text = text_buffer
     word_list = defaultdict(dict)    
     for w in word_list_buffer:
         w = w[:-1]
@@ -33,8 +36,14 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
                    for j in range(0, len(s_ptn))):
                 tot_ptn[ptn] += 1
                 i += len(ptn)
-    for p in sorted(tot_ptn, key=lambda x: tot_ptn[x], reverse=True):
+    print("total occurrence: ", len(tot))
+    for p in sorted(tot_ptn, key=lambda x: tot_ptn[x], reverse=True)[:10]:
         print(p, tot_ptn[p])
+    return tot_ptn
 
+
+if __name__ == "__main__":
 #example
-ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['P', '于', 'S'])
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['P', '于', 'S'])
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['S', 'P'])
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['S', 'P', 'O'])

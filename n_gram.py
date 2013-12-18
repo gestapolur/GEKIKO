@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import sys
 from collections import defaultdict
-is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
 
 def n_grams(text_buffer, N, top):
+    is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
     text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
     cnt = defaultdict(int)
     p = [defaultdict(float) for x in range(0, N)]
