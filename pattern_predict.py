@@ -26,29 +26,29 @@ def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
 
     similar_lst = ptn_find_similar(text, ptn_lst, word_list)
 
-    print (similar_lst)
-    #ptn_result_lst = [ptn_cnt(text, word_list, p) for p in ptn_lst]
-    #for ptn_result in ptn_result_lst:
-    #    print(ptn_result.__class__, len(ptn_result))
+    # tag char
+    word_tag = dict()
+    occur = defaultdict(int)
+    for sml in similar_lst:
+        for i, w in enumerate(list(sml[0])):
+            if not w in word_list:
+                
+                word_tag[w] = grammar_type[ptn_lst[sml[1]][i]]
+                occur[w] += 1
+    for w in word_tag:
+        print (w, word_tag[w], occur[w])
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
     grammar_type_map = lambda x, y: True if (
         x in tagged_word_lst and any(t in grammar_type[ptn[y]] for t in tagged_word_lst[x]['tag'])) else False
     once = False
-    #print (ptn, sub)
     for i, w in enumerate(list(sub)):
-        #if w in tagged_word_lst:
-        #    print (w, tagged_word_lst[w]['tag'], ptn[i])
         if not grammar_type_map(w, i):
             if not once:
                 once = True
             else:
-                #print (sub, grammar_type_map(sub[0], 0),
-                #       grammar_type_map(sub[1], 1),
-                #       grammar_type_map(sub[2], 2))
                 return []
-    #print (sub)
     if once:
         return sub
 
