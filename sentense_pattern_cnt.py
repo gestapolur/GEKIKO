@@ -14,12 +14,15 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
         text = ''.join([w for w in ''.join([l for l in text_buffer])])
     else:
         text = text_buffer
-    word_list = defaultdict(dict)    
-    for w in word_list_buffer:
-        w = w[:-1]
-        key, weight, tag = w.split(' ')
-        word_list[key]['tag'] = tag.split(',')
-        word_list[key]['weight'] = int(weight)
+    word_list = defaultdict(dict)
+    if isinstance(word_list_buffer, defaultdict):
+        word_list = word_list_buffer
+    else:
+        for w in word_list_buffer:
+            w = w[:-1]
+            key, weight, tag = w.split(' ')
+            word_list[key]['tag'] = tag.split(',')
+            word_list[key]['weight'] = int(weight)
     """
     pattern x could fit on position y
     """
@@ -36,7 +39,7 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
                    for j in range(0, len(s_ptn))):
                 tot_ptn[ptn] += 1
                 i += len(ptn)
-    print("total occurrence: ", len(tot))
+    print("total occurrence: ", len(tot_ptn))
     for p in sorted(tot_ptn, key=lambda x: tot_ptn[x], reverse=True)[:10]:
         print(p, tot_ptn[p])
     return tot_ptn
