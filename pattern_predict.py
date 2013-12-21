@@ -8,9 +8,8 @@ count result
 import sys
 from sentense_pattern_cnt import ptn_cnt
 from collections import defaultdict
-
-is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
-grammar_type = {'S': ['N'], 'P': ['V','A'], 'O': ['N']}
+from grammar import is_zh
+from grammar import grammar_type
 
 def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
     """

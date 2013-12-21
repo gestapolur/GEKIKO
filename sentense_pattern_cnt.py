@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from collections import defaultdict
-
-
-is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
-grammar_map = {'S': ['N'], 'P': ['V','A'], 'O': ['N']}
+from grammar import is_zh
+from grammar import grammar_type
 
 
 def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
@@ -27,8 +25,8 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
     pattern x could fit on position y
     """
     fit_pattern = lambda x, y: True if (
-        y in grammar_map and
-        any(tag in grammar_map[y] for tag in word_list[x]['tag'])
+        y in grammar_type and
+        any(tag in grammar_type[y] for tag in word_list[x]['tag'])
         ) or (x == y) else False
 
     tot_ptn = defaultdict(int)

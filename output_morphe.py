@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from collections import defaultdict
-is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
+from grammar import is_zh
 
 def output_morphe(text_buffer, N=2):
     text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
