@@ -11,7 +11,7 @@ from collections import defaultdict
 from grammar import is_zh
 from grammar import grammar_type
 
-def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
+def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     """
     return tagged words & type
     """
@@ -26,15 +26,26 @@ def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
     similar_lst = ptn_find_similar(text, ptn_lst, word_list)
 
     # tag char
-    word_tag = dict()
-    occur = defaultdict(int)
+    word_tag = defaultdict(dict)
+    """
+    word tag:{
+    "N": 1,
+    "V": 2,
+    "example": []
+    }
+    """
+    inc = lambda d, k: d[k] + 1 if k in d else 1
     for sml in similar_lst:
         for i, w in enumerate(list(sml[0])):
-            if not w in word_list:
-                word_tag[w] = grammar_type[ptn_lst[sml[1]][i]]
-                occur[w] += 1
+            if not (w in word_list): # not tagged before
+                for word_type in grammar_type[ptn_lst[sml[1]][i]]:
+                    word_tag[w][word_type] = inc(word_tag[w], word_type)
+                try:
+                    word_tag[w]['example'].append(sml[0])
+                except KeyError:
+                    word_tag[w]['example'] = [sml[0]]
     for w in word_tag:
-        print (w, word_tag[w], occur[w])
+        print (w, word_tag[w])
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
@@ -56,21 +67,21 @@ def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
 
 def ptn_find_similar(text, ptn_lst, tagged_word_lst):
     """
-    @return : similar_lst, [<string>,<pattern_index>]
+    @return : similar_lst, [<string>, <pattern_index>]
     """
     similar_lst = []
     for idx, ptn in enumerate(ptn_lst):
         for i in range(0, len(text)-len(ptn)):
             sub = text[i:i+len(ptn)]
-            if not all(x in sub for x in tagged_word_lst) and all(is_zh(x) for x in sub):
+            if not all(x in sub for x in tagged_word_lst)and all(is_zh(x) for x in sub):
                 if ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
                     similar_lst.append((sub, idx))
     return similar_lst
-            
-def ptn_predict_grammar_type(similar_lst):
-    return []
 
 
-ptn_pdt(open(sys.argv[1], 'r'),
+pattern_predict(open(sys.argv[1], 'r'),
         open(sys.argv[2], 'r'),
-        [['S', 'P', 'O'], ['S', 'P', 'O', 'O']])
+        [['S', 'P', 'O'],
+         ['S', 'P', 'O', 'O'],
+         ['S', 'S', 'P', 'O']
+         ])
