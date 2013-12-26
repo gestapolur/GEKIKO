@@ -31,7 +31,6 @@ def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
     for sml in similar_lst:
         for i, w in enumerate(list(sml[0])):
             if not w in word_list:
-                
                 word_tag[w] = grammar_type[ptn_lst[sml[1]][i]]
                 occur[w] += 1
     for w in word_tag:
@@ -39,33 +38,33 @@ def ptn_pdt(text_buffer, word_list_buffer, ptn_lst):
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
-    grammar_type_map = lambda x, y: True if (
-        x in tagged_word_lst and any(t in grammar_type[ptn[y]] for t in tagged_word_lst[x]['tag'])) else False
+    grammar_type_map = lambda x, y: True if any(
+        t in grammar_type[ptn[y]] for t in tagged_word_lst[x]['tag']
+        ) else False
     once = False
     for i, w in enumerate(list(sub)):
-        if not grammar_type_map(w, i):
+        if w in tagged_word_lst:
+            if not grammar_type_map(w, i):
+                return False # sub not belong to this pattern
+        else:
             if not once:
                 once = True
-            else:
-                return []
-    if once:
-        return sub
+            else: # ensure pattern & sub has exactly 1 differ
+                return False
+    return once
 
 
 def ptn_find_similar(text, ptn_lst, tagged_word_lst):
     """
     @return : similar_lst, [<string>,<pattern_index>]
     """
-    #print (tagged_word_lst)
     similar_lst = []
     for idx, ptn in enumerate(ptn_lst):
         for i in range(0, len(text)-len(ptn)):
             sub = text[i:i+len(ptn)]
             if not all(x in sub for x in tagged_word_lst) and all(is_zh(x) for x in sub):
-                #print (sub)
-                t = ptn_grammar_type_cmp(ptn, sub, tagged_word_lst)
-                if t:
-                    similar_lst.append((t, idx))
+                if ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
+                    similar_lst.append((sub, idx))
     return similar_lst
             
 def ptn_predict_grammar_type(similar_lst):
