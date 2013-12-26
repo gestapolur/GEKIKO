@@ -16,7 +16,7 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     return tagged words & type
     """
     text = ''.join([w for w in ''.join([l for l in text_buffer])])
-    word_list = defaultdict(dict)    
+    word_list = defaultdict(dict)
     for w in word_list_buffer:
         w = w[:-1]
         key, weight, tag = w.split(' ')
@@ -37,7 +37,8 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     inc = lambda d, k: d[k] + 1 if k in d else 1
     for sml in similar_lst:
         for i, w in enumerate(list(sml[0])):
-            if not (w in word_list): # not tagged before
+            # not tagged before and not a known char in pattern
+            if not (w in word_list) and ptn_lst[sml[1]][i] in grammar_type:
                 for word_type in grammar_type[ptn_lst[sml[1]][i]]:
                     word_tag[w][word_type] = inc(word_tag[w], word_type)
                 try:
@@ -49,13 +50,13 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
-    grammar_type_map = lambda x, y: True if any(
-        t in grammar_type[ptn[y]] for t in tagged_word_lst[x]['tag']
-        ) else False
+    grammar_type_map = lambda x, y: True if (y in grammar_type and any(
+            t in grammar_type[y] for t in tagged_word_lst[x]['tag']
+            )) or (x == y) else False
     once = False
     for i, w in enumerate(list(sub)):
         if w in tagged_word_lst:
-            if not grammar_type_map(w, i):
+            if not grammar_type_map(w, ptn[i]):
                 return False # sub not belong to this pattern
         else:
             if not once:
@@ -67,6 +68,8 @@ def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
 
 def ptn_find_similar(text, ptn_lst, tagged_word_lst):
     """
+    find sub-sequence which has exactly 1 difference with a pattern.
+
     @return : similar_lst, [<string>, <pattern_index>]
     """
     similar_lst = []
@@ -83,5 +86,6 @@ pattern_predict(open(sys.argv[1], 'r'),
         open(sys.argv[2], 'r'),
         [['S', 'P', 'O'],
          ['S', 'P', 'O', 'O'],
-         ['S', 'S', 'P', 'O']
+         ['S', 'S', 'P', 'O'],
+         ['P', '于', 'S']
          ])
