@@ -1,10 +1,13 @@
-NLP method practice codes
-=========================
+NLP methods practice
+====================
 
-N-grams
--------
+USAGE
+-----
 
-    usage:
+### N-grams
 
-        n_gram.py <input_filef> <N_grams> <list_top_nth>
+        python3 n_gram.py <input_file> <N_grams> <list_top_nth>
 
+### Linguistic rules based POS tagging
+
+        python3 pattern_predict.py <text_file> <tagged_word_list>
