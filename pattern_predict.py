@@ -1,15 +1,15 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
 """
-this module provide pattern predict feature basis on pattern
+this module provide pattern predict feature which base on pattern
 
-count result
+count results.
 """
 import sys
 from sentense_pattern_cnt import ptn_cnt
 from collections import defaultdict
 from grammar import is_zh
-from grammar import grammar_type
+
 
 def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     """
@@ -38,8 +38,8 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     for sml in similar_lst:
         for i, w in enumerate(list(sml[0])):
             # not tagged before and not a known char in pattern
-            if not (w in word_list) and ptn_lst[sml[1]][i] in grammar_type:
-                for word_type in grammar_type[ptn_lst[sml[1]][i]]:
+            if not (w in word_list) and isinstance(ptn_lst[sml[1]][i], list):
+                for word_type in ptn_lst[sml[1]][i]:
                     word_tag[w][word_type] = inc(word_tag[w], word_type)
                 try:
                     word_tag[w]['example'].append(sml[0])
@@ -50,8 +50,8 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
-    grammar_type_map = lambda x, y: True if (y in grammar_type and any(
-            t in grammar_type[y] for t in tagged_word_lst[x]['tag']
+    grammar_type_map = lambda x, y: True if (
+        any(t in y for t in tagged_word_lst[x]['tag']
             )) or (x == y) else False
     once = False
     for i, w in enumerate(list(sub)):
@@ -84,8 +84,8 @@ def ptn_find_similar(text, ptn_lst, tagged_word_lst):
 
 pattern_predict(open(sys.argv[1], 'r'),
         open(sys.argv[2], 'r'),
-        [['S', 'P', 'O'],
-         ['S', 'P', 'O', 'O'],
-         ['S', 'S', 'P', 'O'],
-         ['P', '于', 'S']
+        [[['N'], ['V','A'], ['N']],
+         [['N'], ['V','A'], ['N'], ['N']],
+         [['N'], ['N'], ['V'], ['N']],
+         [['N'], '于', ['S']]
          ])
