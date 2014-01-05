@@ -81,11 +81,13 @@ def ptn_find_similar(text, ptn_lst, tagged_word_lst):
                     similar_lst.append((sub, idx))
     return similar_lst
 
-
+# sample usage
 pattern_predict(open(sys.argv[1], 'r'),
         open(sys.argv[2], 'r'),
         [[['N'], ['V','A'], ['N']],
          [['N'], ['V','A'], ['N'], ['N']],
          [['N'], ['N'], ['V'], ['N']],
-         [['N'], '于', ['S']]
+         [['V'], '于', ['N']],
+         [['N'], ['V'], '於', ['N']],
+         ['非', ['N'], ['N'], '也']
          ])
