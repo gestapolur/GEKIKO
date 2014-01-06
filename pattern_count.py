@@ -1,12 +1,18 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
+"""
+this module provide methods for counting patterns in text.
+"""
 import sys
 from collections import defaultdict
 from grammar import is_zh
-from grammar import grammar_type
 
 
 def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
+    """
+    @param word_list_buffer: word with tagged mark.
+    format: <word> <weight> <tag_1,tag_2...tag_n>
+    """
     #text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
     if not isinstance(text_buffer, str):
         text = ''.join([w for w in ''.join([l for l in text_buffer])])
@@ -25,8 +31,7 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
     pattern x could fit on position y
     """
     fit_pattern = lambda x, y: True if (
-        y in grammar_type and
-        any(tag in grammar_type[y] for tag in word_list[x]['tag'])
+        any(tag in y for tag in word_list[x]['tag'])
         ) or (x == y) else False
 
     tot_ptn = defaultdict(int)
@@ -44,7 +49,7 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
 
 
 if __name__ == "__main__":
-#example
-    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['P', '于', 'S'])
-    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['S', 'P'])
-    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), ['S', 'P', 'O'])
+    #example
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), [['N'], '于', ['N']])
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), [['N'], ['V', 'A']])
+    ptn_cnt(open(sys.argv[1], "r"), open(sys.argv[2], "r"), [['N'], ['V','A'], ['N']])
