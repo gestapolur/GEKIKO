@@ -6,9 +6,9 @@ this module provide pattern predict feature which base on pattern
 count results.
 """
 import sys
-from sentense_pattern_cnt import ptn_cnt
 from collections import defaultdict
 from grammar import is_zh
+from pprint import pprint
 
 
 def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
@@ -42,11 +42,12 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                 for word_type in ptn_lst[sml[1]][i]:
                     word_tag[w][word_type] = inc(word_tag[w], word_type)
                 try:
-                    word_tag[w]['example'].append(sml[0])
+                    word_tag[w]['_example'].append(sml[0])
                 except KeyError:
-                    word_tag[w]['example'] = [sml[0]]
+                    word_tag[w]['_example'] = [sml[0]]
     for w in word_tag:
-        print (w, word_tag[w])
+        print(w, end=' ')
+        pprint([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
@@ -81,13 +82,22 @@ def ptn_find_similar(text, ptn_lst, tagged_word_lst):
                     similar_lst.append((sub, idx))
     return similar_lst
 
+def read_pattern(pattern_buffer):
+    # python2.x may meet decode problem
+    # de = lambda l: [x if isinstance(x, list) else x.encode('latin-1').decode('utf-8') for x in l]
+    return [eval(p) for p in pattern_buffer]
+
 # sample usage
+#pattern_predict(open(sys.argv[1], 'r'),
+#        open(sys.argv[2], 'r'),
+#        [[['N'], ['V','A'], ['N']],
+#         [['N'], ['V','A'], ['N'], ['N']],
+#         [['N'], ['N'], ['V'], ['N']],
+#         [['V'], '于', ['N']],
+#         [['N'], ['V'], '於', ['N']],
+#         ['非', ['N'], ['N'], '也']
+#         ])
+#print(read_pattern(open(sys.argv[1], 'r')))
 pattern_predict(open(sys.argv[1], 'r'),
-        open(sys.argv[2], 'r'),
-        [[['N'], ['V','A'], ['N']],
-         [['N'], ['V','A'], ['N'], ['N']],
-         [['N'], ['N'], ['V'], ['N']],
-         [['V'], '于', ['N']],
-         [['N'], ['V'], '於', ['N']],
-         ['非', ['N'], ['N'], '也']
-         ])
+                open(sys.argv[2], 'r'),
+                read_pattern(open(sys.argv[3], 'r')))
