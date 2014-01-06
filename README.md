@@ -1,5 +1,7 @@
-NLP methods practice
+NLP practice
 ====================
+
+    Script for Old Chinese POS tagging.
 
 USAGE
 -----
@@ -11,3 +13,7 @@ USAGE
 ### Linguistic rules based POS tagging
 
         python3 pattern_predict.py <text_file> <tagged_word_list>
+
+### Count Patterns
+
+        python3 pattern_count.py <text_file> <tagged_word_list>
