@@ -54,7 +54,20 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                 except KeyError:
                     word_tag[w]['_example'] = [sml[0]]
 
-    # POS frequency filter
+    # POS frequency filter, remove POS below average occurance.
+    for w, tags in word_tag.items():
+        total_cnt = len(tags) - 1
+        if total_cnt:
+            total_cnt = float(total_cnt)
+            average_occur = \
+                sum([tags[w] for w in iter(tags) if not(w == '_example')]) / total_cnt
+            low_rate_ptn = []
+            for tag, cnt in tags.items():
+                if not(tag == '_example') and (cnt < average_occur):
+                    low_rate_ptn.append(tag)
+            print(w, low_rate_ptn, tags, average_occur)
+            for ptn in low_rate_ptn:
+                tags.pop(ptn)
 
     output = open("predicted_pattern.txt", "w")
     for w in word_tag:
