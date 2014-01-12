@@ -44,6 +44,9 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
         for i, w in enumerate(list(sml[0])):
             # not tagged before and not a known char in pattern
             if not (w in word_list) and isinstance(ptn_lst[sml[1]][i], list):
+                if '_example' in word_tag[w] and \
+                        (any(sml[0] in s for s in word_tag[w].get('_example'))):
+                    continue
                 for word_type in ptn_lst[sml[1]][i]:
                     word_tag[w][word_type] = inc(word_tag[w], word_type)
                 try:
@@ -51,12 +54,13 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                 except KeyError:
                     word_tag[w]['_example'] = [sml[0]]
 
+    # POS frequency filter
+
     output = open("predicted_pattern.txt", "w")
     for w in word_tag:
         print(w, end=' ')
         pprint([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
-        output.write(w)
-        output.write("\n")
+        output.write(w + " " + str([{k: word_tag[w][k]} for k in sorted(word_tag[w])]) + "\n")
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):

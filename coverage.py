@@ -1,5 +1,11 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
+"""
+this module caculate coverage rate by reading text from argv[1] and reading
+
+tagged chars from argv[2] 
+"""
+
 import sys
 from grammar import is_zh
 
