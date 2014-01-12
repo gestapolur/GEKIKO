@@ -15,7 +15,13 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     """
     return tagged words & type
     """
-    text = ''.join([w for w in ''.join([l for l in text_buffer])])
+    if type(text_buffer) is list:
+        text = ''
+        for buffer_item in text_buffer:
+            text = text + ''.join([w for w in ''.join([l for l in open(buffer_item, "r")])])
+    else:
+        text = ''.join([w for w in ''.join([l for l in text_buffer])])
+
     word_list = defaultdict(dict)
     for w in word_list_buffer:
         w = w[:-1]
@@ -24,7 +30,6 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
         word_list[key]['weight'] = int(weight)
 
     similar_lst = ptn_find_similar(text, ptn_lst, word_list)
-
     # tag char
     word_tag = defaultdict(dict)
     """
@@ -45,9 +50,13 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                     word_tag[w]['_example'].append(sml[0])
                 except KeyError:
                     word_tag[w]['_example'] = [sml[0]]
+
+    output = open("predicted_pattern.txt", "w")
     for w in word_tag:
         print(w, end=' ')
         pprint([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
+        output.write(w)
+        output.write("\n")
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
@@ -77,6 +86,7 @@ def ptn_find_similar(text, ptn_lst, tagged_word_lst):
     for idx, ptn in enumerate(ptn_lst):
         for i in range(0, len(text)-len(ptn)):
             sub = text[i:i+len(ptn)]
+            #print(sub, ptn, len(ptn))
             if not all(x in sub for x in tagged_word_lst)and all(is_zh(x) for x in sub):
                 if ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
                     similar_lst.append((sub, idx))
@@ -87,17 +97,18 @@ def read_pattern(pattern_buffer):
     # de = lambda l: [x if isinstance(x, list) else x.encode('latin-1').decode('utf-8') for x in l]
     return [eval(p) for p in pattern_buffer]
 
-# sample usage
-#pattern_predict(open(sys.argv[1], 'r'),
-#        open(sys.argv[2], 'r'),
-#        [[['N'], ['V','A'], ['N']],
-#         [['N'], ['V','A'], ['N'], ['N']],
-#         [['N'], ['N'], ['V'], ['N']],
-#         [['V'], '于', ['N']],
-#         [['N'], ['V'], '於', ['N']],
-#         ['非', ['N'], ['N'], '也']
-#         ])
-#print(read_pattern(open(sys.argv[1], 'r')))
-pattern_predict(open(sys.argv[1], 'r'),
-                open(sys.argv[2], 'r'),
-                read_pattern(open(sys.argv[3], 'r')))
+if __name__ == "__main__":
+    # sample usage
+    #pattern_predict(open(sys.argv[1], 'r'),
+    #        open(sys.argv[2], 'r'),
+    #        [[['N'], ['V','A'], ['N']],
+    #         [['N'], ['V','A'], ['N'], ['N']],
+    #         [['N'], ['N'], ['V'], ['N']],
+    #         [['V'], '于', ['N']],
+    #         [['N'], ['V'], '於', ['N']],
+    #         ['非', ['N'], ['N'], '也']
+    #         ])
+    #print(read_pattern(open(sys.argv[1], 'r')))
+    pattern_predict(open(sys.argv[1], 'r'),
+                    open(sys.argv[2], 'r'),
+                    read_pattern(open(sys.argv[3], 'r')))
