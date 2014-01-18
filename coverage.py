@@ -22,7 +22,7 @@ def cnt(text_buffer, tagged_word_buffer):
     tot = 0
     for w in tagged_word_buffer:
         w = w[:-1]
-        key, weight, tag = w.split(' ')
+        key, weight, tag = w.split(None, 2)
         tagged_word.add(key)
     for t in text:
         if t in tagged_word:

@@ -26,8 +26,8 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     word_list = defaultdict(dict)
     for w in word_list_buffer:
         w = w[:-1]
-        key, weight, tag = w.split(' ')
-        word_list[key]['tag'] = tag.split(',')
+        key, weight, tag = w.split(None, 2)
+        word_list[key]['tag'] = tag.replace(' ', '').split(',')
         word_list[key]['weight'] = int(weight)
 
     similar_lst = ptn_find_similar(text, ptn_lst, word_list)
@@ -69,13 +69,24 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
             for ptn in low_rate_ptn:
                 tags.pop(ptn)
 
-    output = open("predicted_pattern.txt", "w")
+    output = open("predicted_tag.txt", "w")
+    output_with_example = open("predicted_pattern.txt", "w")
     for w in word_tag:
-        print(w, len(word_tag[w]['_example']))
         #pprint([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
-        #output.write(w + " " + str([{k: word_tag[w][k]} for k in sorted(word_tag[w]) if not(w == "_example")]) + "\n")
+        output.write("%s %s %s\n" % (
+                w,
+                len(word_tag[w]) - 1,
+                str([k for k in sorted(word_tag[w]) if k != "_example"])
+                ))
+        output_with_example.write("%s %s %s\n" % (
+                w,
+                len(word_tag[w]) - 1,
+                str([k for k in sorted(word_tag[w]) if k != "_example"])
+                ))
+
+        #output.write(w + " " + str([{k: word_tag[w][k]} for k in sorted(word_tag[w]) if w is not "_example"]) + "\n")
         #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + str([k for k in sorted(word_tag[w]) if not(k == "_example")]) + "\n")
-        output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + "x" + "\n")
+        #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + "x" + "\n")
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):

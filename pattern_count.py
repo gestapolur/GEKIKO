@@ -24,8 +24,8 @@ def ptn_cnt(text_buffer, word_list_buffer, s_ptn):
     else:
         for w in word_list_buffer:
             w = w[:-1]
-            key, weight, tag = w.split(' ')
-            word_list[key]['tag'] = tag.split(',')
+            key, weight, tag = w.split(None, 2)
+            word_list[key]['tag'] = tag.replace(' ', '').split(',')
             word_list[key]['weight'] = int(weight)
     """
     pattern x could fit on position y
