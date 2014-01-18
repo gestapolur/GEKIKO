@@ -78,12 +78,12 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                 len(word_tag[w]) - 1,
                 str([k for k in sorted(word_tag[w]) if k != "_example"])
                 ))
-        output_with_example.write("%s %s %s\n" % (
+        output_with_example.write("%s %s\n" % (
                 w,
-                len(word_tag[w]) - 1,
-                str([k for k in sorted(word_tag[w]) if k != "_example"])
+                str([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
                 ))
-
+    output.close()
+    output_with_example.close()
         #output.write(w + " " + str([{k: word_tag[w][k]} for k in sorted(word_tag[w]) if w is not "_example"]) + "\n")
         #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + str([k for k in sorted(word_tag[w]) if not(k == "_example")]) + "\n")
         #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + "x" + "\n")
