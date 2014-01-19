@@ -19,7 +19,10 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
         text = ''
         for buffer_item in text_buffer:
             text = text + ''.join(
-                [w for w in ''.join([l for l in open(buffer_item, "r")])])
+                [w for w in ''.join(
+                        [l for l in open(buffer_item, "r")]
+                        )]
+                )
     else:
         text = ''.join([w for w in ''.join([l for l in text_buffer])])
 
@@ -42,12 +45,14 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
     """
     inc = lambda d, k: d[k] + 1 if k in d else 1
     for sml in similar_lst:
+        print(sml)
         for i, w in enumerate(list(sml[0])):
             # not tagged before and not a known char in pattern
             if not (w in word_list) and isinstance(ptn_lst[sml[1]][i], list):
                 if '_example' in word_tag[w] and \
                         (any(sml[0] in s for s in word_tag[w].get('_example'))):
                     continue
+                #print (ptn_lst[sml[1]][i], w)
                 for word_type in ptn_lst[sml[1]][i]:
                     word_tag[w][word_type] = inc(word_tag[w], word_type)
                 try:
@@ -82,11 +87,9 @@ def pattern_predict(text_buffer, word_list_buffer, ptn_lst):
                 w,
                 str([{k: word_tag[w][k]} for k in sorted(word_tag[w])])
                 ))
+
     output.close()
     output_with_example.close()
-        #output.write(w + " " + str([{k: word_tag[w][k]} for k in sorted(word_tag[w]) if w is not "_example"]) + "\n")
-        #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + str([k for k in sorted(word_tag[w]) if not(k == "_example")]) + "\n")
-        #output.write(w + " " + str(len(word_tag[w]['_example'])) + " " + "x" + "\n")
 
 
 def ptn_grammar_type_cmp(ptn, sub, tagged_word_lst):
