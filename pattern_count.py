@@ -5,7 +5,6 @@ this module provide methods for counting patterns in text.
 """
 import sys
 from collections import defaultdict
-from grammar import is_zh
 
 
 def pattern_count(text_buffer, word_list_buffer, s_ptn_list):
@@ -13,7 +12,6 @@ def pattern_count(text_buffer, word_list_buffer, s_ptn_list):
     @param word_list_buffer: word with tagged mark.
     format: <word> <weight> <tag_1,tag_2...tag_n>
     """
-    #text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
     if type(text_buffer) is list:
         text = ''
         for buffer_item in text_buffer:
@@ -45,15 +43,19 @@ def pattern_count(text_buffer, word_list_buffer, s_ptn_list):
     output = open("count_result.out", "w")
     for s_ptn in s_ptn_list:
         tot_ptn = defaultdict(int)
+        tot_ocr = 0
         for i in range(0, len(text) - len(s_ptn)):
             ptn = text[i:i+len(s_ptn)]
             if all(p in word_list for p in ptn):
                 if all(fit_pattern(ptn[j], s_ptn[j])
                        for j in range(0, len(s_ptn))):
                     tot_ptn[ptn] += 1
+                    tot_ocr += 1
                     i += len(ptn)
-        print("%s total occurrence: %s" % (s_ptn, len(tot_ptn)))
-        output.write("%s total occurrence: %s\n" % (s_ptn, len(tot_ptn)))
+        print("%s total pattern: %s total occurance: %s" % (
+                s_ptn, len(tot_ptn), tot_ocr))
+        output.write("%s total pattern: %s total occurance: %s\n" % (
+                s_ptn, len(tot_ptn), tot_ocr))
         for p in sorted(tot_ptn, key=lambda x: tot_ptn[x], reverse=True)[:100]:
             print(p, tot_ptn[p])
             output.write("%s %s\n" % (p, tot_ptn))
