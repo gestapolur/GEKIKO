@@ -4,8 +4,14 @@ import sys
 from collections import defaultdict
 from grammar import is_zh
 
-def n_grams(text_buffer, N, top):
-    text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
+def n_grams(text_buffer, N=2, top=100):
+    if text_buffer is list:
+        text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
+    else:
+        text = ''
+        for _file in text_buffer:
+            with open(_file, "r") as _input:
+                text += ''.join([w for w in ''.join([l for l in _input]) if is_zh(w)])
     cnt = defaultdict(int)
     p = [defaultdict(float) for x in range(0, N)]
     tot = len(text)
@@ -23,4 +29,6 @@ def n_grams(text_buffer, N, top):
         for pr in sorted(p[i], key=lambda x: p[i][x], reverse=True)[:top]:
             print(pr, p[i][pr], cnt[pr])
 
-n_grams(open(sys.argv[1], "r"), int(sys.argv[2]), int(sys.argv[3]))
+
+if __name__ == "__main__":
+    n_grams(open(sys.argv[1], "r"))

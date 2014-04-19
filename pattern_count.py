@@ -30,7 +30,12 @@ def pattern_count(text_buffer, word_list_buffer, s_ptn_list):
         for w in word_list_buffer:
             w = w[:-1]
             key, weight, tag = w.split(None, 2)
-            word_list[key]['tag'] = tag.replace(' ', '').split(',')
+            try:
+                tag = eval(tag)
+                word_list[key]['tag'] = tag
+            except NameError:
+                word_list[key]['tag'] = tag.replace(' ', '').split(',')
+            print (word_list[key]['tag'], word_list[key]['tag'].__class__)
             word_list[key]['weight'] = int(weight)
     """
     pattern x could fit on position y

@@ -7,10 +7,16 @@ from pattern_count import pattern_count
 from coverage import cnt
 
 text_files = [ "text/article/" + f for f in os.listdir("text/article/")]
-
+"""
 pattern_count(
     text_files,
     open("tagged.txt", "r"),
+    read_pattern(open(sys.argv[1], "r"))
+    )
+"""
+pattern_count(
+    text_files,
+    open("test_tag.txt", "r"),
     read_pattern(open(sys.argv[1], "r"))
     )
 
