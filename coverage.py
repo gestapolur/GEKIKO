@@ -1,9 +1,9 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
 """
-this module caculate coverage rate by reading text from argv[1] and reading
+this module caculate coverage rate by reading text from text_buffer and
 
-tagged chars from argv[2] 
+read tagged chars from tagged_word_buffer
 """
 
 import sys
@@ -31,5 +31,7 @@ def cnt(text_buffer, tagged_word_buffer):
     return (float(tot)/len(text))
 
 if __name__ == "__main__":
-    cnt(open(sys.argv[1], 'r'),
-        open(sys.argv[2], 'r'))
+    import os
+    text_files = [ "text/article/" + f for f in os.listdir("text/article/")]
+    cnt(text_files,
+        open(sys.argv[1], 'r'))
