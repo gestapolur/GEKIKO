@@ -5,8 +5,14 @@ from collections import defaultdict
 from grammar import is_zh
 
 def n_grams(text_buffer, N=2, top=100):
-    if text_buffer is list:
-        text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
+    if type(text_buffer) is list:
+        text = ''
+        for buffer_item in text_buffer:
+            text = text + ''.join(
+                [w for w in ''.join(
+                        [l for l in open(buffer_item, "r")]
+                        )]
+                )
     else:
         text = ''
         for _file in text_buffer:
@@ -25,10 +31,19 @@ def n_grams(text_buffer, N=2, top=100):
             if sub not in cnt:
                 cnt[sub] = text.count(sub)
             p[i][sub] = cnt[sub]/float(cnt[sub[:-1]])*p[i-1][sub[:-1]]
+    result = []
     for i in range(0, N):
-        for pr in sorted(p[i], key=lambda x: p[i][x], reverse=True)[:top]:
-            print(pr, p[i][pr], cnt[pr])
+        for pr in sorted(p[i], key=lambda x: p[i][x], reverse=True):
+            current_words_tuple_list.append((pr, p[i][pr], cnt[pr]))
+        result.append(current_words_tuple_list)
+        for _ in current_words_tuple_list[:top]:
+            print(_)
+
+    return result
 
 
 if __name__ == "__main__":
-    n_grams(open(sys.argv[1], "r"))
+    # count 2 grams in all text
+    import os
+    text_files = ["text/article/" + f for f in os.listdir("text/article/")]
+    n_grams(text_files)
