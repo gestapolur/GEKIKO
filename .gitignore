@@ -1,5 +1,8 @@
-*.txt
-*.out
-*.in
-*.*~
-*.zip
+*
+!coverage.py
+!n_gram.py
+!output_morphe.py
+!pattern_predict.py
+!test.py
+!grammar.py
+!pattern_count.py

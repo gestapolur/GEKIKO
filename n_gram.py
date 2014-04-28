@@ -1,23 +1,22 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
+
 import sys
+import re
 from collections import defaultdict
+
 from grammar import is_zh
+
 
 def n_grams(text_buffer, N=2, top=100):
     if type(text_buffer) is list:
         text = ''
-        for buffer_item in text_buffer:
-            text = text + ''.join(
-                [w for w in ''.join(
-                        [l for l in open(buffer_item, "r")]
-                        )]
-                )
-    else:
-        text = ''
         for _file in text_buffer:
             with open(_file, "r") as _input:
                 text += ''.join([w for w in ''.join([l for l in _input]) if is_zh(w)])
+    else:
+        text = ''.join([w for w in ''.join([l for l in text_buffer]) if is_zh(w)])
+
     cnt = defaultdict(int)
     p = [defaultdict(float) for x in range(0, N)]
     tot = len(text)
@@ -33,11 +32,13 @@ def n_grams(text_buffer, N=2, top=100):
             p[i][sub] = cnt[sub]/float(cnt[sub[:-1]])*p[i-1][sub[:-1]]
     result = []
     for i in range(0, N):
+        tuple_list = []
         for pr in sorted(p[i], key=lambda x: p[i][x], reverse=True):
-            current_words_tuple_list.append((pr, p[i][pr], cnt[pr]))
-        result.append(current_words_tuple_list)
-        for _ in current_words_tuple_list[:top]:
-            print(_)
+            tuple_list.append((pr, p[i][pr], cnt[pr]))
+        result.append(tuple_list)
+        # output each grams in top i
+        print (i+1, "grams result")
+        print ("\n".join([str(_) for _ in tuple_list[:top]]))
 
     return result
 
@@ -46,4 +47,6 @@ if __name__ == "__main__":
     # count 2 grams in all text
     import os
     text_files = ["text/article/" + f for f in os.listdir("text/article/")]
-    n_grams(text_files)
+    for _ in text_files:
+        print (_)
+        n_grams(open(_, "r"), top=10)
