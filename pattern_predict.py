@@ -130,6 +130,23 @@ def read_pattern(pattern_buffer):
     # de = lambda l: [x if isinstance(x, list) else x.encode('latin-1').decode('utf-8') for x in l]
     return [eval(p) for p in pattern_buffer]
 
+
+def predict_tagging(text, word_list, pattern_list):
+    pass
+
+
+def load_pattern():
+    pass
+
+
+def load_wordlist():
+    pass
+
+
+def load_pattern_list():
+    pass
+
+
 if __name__ == "__main__":
     # sample usage
     #pattern_predict(open(sys.argv[1], 'r'),
