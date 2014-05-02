@@ -8,3 +8,4 @@
 !predict_tagging.py
 !test.py
 !tagged.txt
+!pattern.test.json
