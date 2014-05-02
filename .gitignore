@@ -3,6 +3,7 @@
 !n_gram.py
 !output_morphe.py
 !pattern_predict.py
-!test.py
 !grammar.py
 !pattern_count.py
+!predict_tagging.py
+!test.py
