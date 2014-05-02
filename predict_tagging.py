@@ -12,34 +12,39 @@ import json
 import re
 from collections import defaultdict
 
-def similarity(sentence, word_dict, pattern):
+def find_tagable_char(sentence, word_dict, pattern):
 
-    def similarity_match(s_idx, p_idx, similarity_value, match_result):
+    def similarity(s_idx, p_idx, similarity_value, match_result):
         """
         find maximal simiarlity value
         """
-        if p_idx == len(pattern):
-            return similarity_value
-        new_similarity_value = similarity_value
-        for p_cnt in range(0, pattern[p_idx][2]+1):
-            if p_idx+p_cnt < len(pattern)
-                if pattern[p_idx+p_cnt] in word_dict[sentense[s_idx]]:
-                    new_similarity_value = max(
-                        similarity_match(
-                            s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+p_cnt),
-                        new_similarity_value) + 1
+        if p_idx >= len(pattern) or s_idx >= len(sentence):
+            return [similarity_value, match_result]
+        print (s_idx, p_idx)
+        print (s_idx, p_idx, similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
+        new_similarity_result = [similarity_value, match_result]
+        for p_cnt in range(0, pattern[p_idx][1]+1):
+            print ("!!!!")
+            if p_idx+p_cnt < len(pattern):
+                print ("!!!")
+                if pattern[p_idx+p_cnt][0] in word_dict[sentence[s_idx]].get("tag", []):
+                    print ("!!")
+                    temp_similarity_result = similarity(
+                        s_idx+p_cnt+1, p_idx+1, similarity_value+1, match_result+[p_cnt+1])
                 else: # not match
-                    new_similarity_value = max(
-                        similarity_match(
-                            s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+p_cnt),
-                        new_similarity_value)
-                
-        return new_similarity_value
+                    temp_similarity_result = similarity(
+                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+[0])
+                if temp_similarity_result[0] > new_similarity_result[0]:
+                    new_similarity_result = temp_similarity_result
+
+        return new_similarity_result
 
     # sentence has no similarity with pattern
     if len(sentence) < len(pattern):
         return None
-    return similarity_match(0, 0, 0, [])
+    print (len(sentence), len(pattern))
+    similarity_result = similarity(0, 0, 0, [])
+    return similarity_result
 
 
 def predict_tagging(text, word_dict, pattern_list):
@@ -61,7 +66,7 @@ def predict_tagging(text, word_dict, pattern_list):
     # count similarity
     for sentence in sentence_list:
         for pattern in pattern_list:
-             result = similarity(sentence, word_dict, pattern)
+             result = find_tagable_char(sentence, word_dict, pattern)
              if type(result) is tuple:
                  pos_similar_chars[result[0]]["total"] += 1
                  pos_similar_chars[result[0]][result[1]] += 1
@@ -104,7 +109,13 @@ def load_word_dict(word_tag_file):
     return word_dict
 
 
+def test_find_tagable_char():
+    word_dict = load_word_dict("tagged.txt")
+    pattern = [["N", 2], ["V", 1], ["N", 2], ["于", 1], ["N", 2]]
+    print (find_tagable_char("鄭伯克段于鄢", word_dict, pattern))
+
 if __name__ == "__main__":
+    test_find_tagable_char()
     # load_word_dict("tagged.txt")
     # pattern_list = load_pattern_list("pattern.test.json")
     # print (type(pattern_list), pattern_list)
