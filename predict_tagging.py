@@ -24,16 +24,17 @@ def find_tagable_char(sentence, word_dict, pattern):
         print (s_idx, p_idx, similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
         for p_cnt in range(0, pattern[p_idx][1]+1):
-            #print ("!!!!")
             if p_idx+p_cnt < len(pattern):
-                #print ("!!!")
-                print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
-                if (pattern[p_idx+p_cnt][0] in word_dict[sentence[s_idx]].get("tag", [])) or (pattern[p_idx+p_cnt][0] == sentence[s_idx]): # pattern is a specific char
+                match_result += [0]
+                #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
+                if (pattern[p_idx+p_cnt][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
+			pattern[p_idx+p_cnt][0] == sentence[s_idx]): # pattern is a specific char
+                    print (p_cnt, match_result, sentence[s_idx])
                     temp_similarity_result = similarity(
-                        s_idx+p_cnt+1, p_idx+1, similarity_value+1, match_result+[p_cnt+1])
+                        s_idx+p_cnt+1, p_idx, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
                 else: # not match
                     temp_similarity_result = similarity(
-                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+[0])
+                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result)
                 if temp_similarity_result[0] > new_similarity_result[0]:
                     new_similarity_result = temp_similarity_result
 
@@ -42,7 +43,7 @@ def find_tagable_char(sentence, word_dict, pattern):
     # sentence has no similarity with pattern
     if len(sentence) < len(pattern):
         return None
-    print (len(sentence), len(pattern))
+    print ("sentence len:", len(sentence), "pattern len:", len(pattern))
     similarity_result = similarity(0, 0, 0, [])
     return similarity_result
 
@@ -111,8 +112,13 @@ def load_word_dict(word_tag_file):
 
 def test_find_tagable_char():
     word_dict = load_word_dict("tagged.txt")
-    pattern = [["N", 2], ["V", 1], ["N", 2], ["于", 1], ["N", 2]]
-    print (find_tagable_char("鄭伯克段于鄢", word_dict, pattern))
+    #pattern = [["N", 2], ["V", 1], ["N", 2], ["于", 1], ["N", 2]]
+    #print (find_tagable_char("鄭伯克段于鄢", word_dict, pattern))
+    #pattern = [["N", 2], ["AD", 1], ["P", 1], ["V", 1], ["P", 1]]
+    #print(find_tagable_char("孔穿無以應焉", word_dict, pattern))
+    pattern = [["N", 2], ["之", 1], ["N", 2], ["也", 1]]
+    print (find_tagable_char("孔子之葉也", word_dict, pattern))
+
 
 if __name__ == "__main__":
     test_find_tagable_char()
