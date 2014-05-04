@@ -25,16 +25,17 @@ def find_tagable_char(sentence, word_dict, pattern):
         new_similarity_result = [similarity_value, match_result]
         for p_cnt in range(0, pattern[p_idx][1]+1):
             if p_idx+p_cnt < len(pattern):
-                match_result += [0]
                 #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
                 if (pattern[p_idx+p_cnt][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
 			pattern[p_idx+p_cnt][0] == sentence[s_idx]): # pattern is a specific char
                     print (p_cnt, match_result, sentence[s_idx])
+                    if not match_result:
+                        match_result = [0]
                     temp_similarity_result = similarity(
                         s_idx+p_cnt+1, p_idx, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
                 else: # not match
                     temp_similarity_result = similarity(
-                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result)
+                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+[0])
                 if temp_similarity_result[0] > new_similarity_result[0]:
                     new_similarity_result = temp_similarity_result
 
