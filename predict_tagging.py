@@ -14,7 +14,7 @@ from collections import defaultdict
 
 def find_tagable_char(sentence, word_dict, pattern):
 
-    def similarity(s_idx, p_idx, similarity_value, match_result):
+    def similarity(s_idx, p_idx, p_cnt, similarity_value, match_result):
         """
         find maximal simiarlity value
         """
@@ -24,7 +24,7 @@ def find_tagable_char(sentence, word_dict, pattern):
         print (s_idx, p_idx, similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
         for p_cnt in range(0, pattern[p_idx][1]+1):
-            if p_idx+p_cnt < len(pattern):
+            if p_cnt < len(pattern[p_idx]) and p_idx+p_cnt < len(pattern):
                 #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
                 if (pattern[p_idx+p_cnt][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
 			pattern[p_idx+p_cnt][0] == sentence[s_idx]): # pattern is a specific char
@@ -32,10 +32,10 @@ def find_tagable_char(sentence, word_dict, pattern):
                     if not match_result:
                         match_result = [0]
                     temp_similarity_result = similarity(
-                        s_idx+p_cnt+1, p_idx, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
+                        s_idx+p_cnt+1, p_idx, p_cnt+1, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
                 else: # not match
                     temp_similarity_result = similarity(
-                        s_idx+p_cnt+1, p_idx+1, similarity_value, match_result+[0])
+                        s_idx+p_cnt+1, p_idx+1, 0, similarity_value, match_result+[0])
                 if temp_similarity_result[0] > new_similarity_result[0]:
                     new_similarity_result = temp_similarity_result
 
@@ -45,7 +45,7 @@ def find_tagable_char(sentence, word_dict, pattern):
     if len(sentence) < len(pattern):
         return None
     print ("sentence len:", len(sentence), "pattern len:", len(pattern))
-    similarity_result = similarity(0, 0, 0, [])
+    similarity_result = similarity(0, 0, 0, 0, [])
     return similarity_result
 
 
