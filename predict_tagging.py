@@ -15,11 +15,11 @@ from collections import defaultdict
 PATTERN_FILE = "pattern.json"
 TAG_FILE = "tagged.txt"
 AUTO_TAG_FILE="auto_tagged.txt"
-SENTENCE_FIND_REGEX = re.compile("([^，。？ ]+?)[，。？ ]")
-SUB_PUNC_REGEX = re.compile("[「」『』、；\n]")
+PATTERN_COUNT_RESULT = "pattern_count_result.json"
+SENTENCE_FIND_REGEX = re.compile("([^，。？ ]+?)[，。？ 　]")
+SUB_PUNC_REGEX = re.compile("[　「」『』、；\n]")
 update_similarity = lambda origin_similarity, new_similarity: \
                            new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
-is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
 
 
 def find_tagable_char(sentence, pattern, word_dict):
@@ -69,7 +69,7 @@ def predict_tagging(text, pattern_list, word_dict, output_file=AUTO_TAG_FILE):
 
     """
     TAGGING_THRESHOLD = 0.3
-    sentence_list = [_ for _ in SENTENCE_FIND_REGEX.findall(text) if is_zh(_)]
+    sentence_list = SENTENCE_FIND_REGEX.findall(text)
     tag_dict = defaultdict(list)
     """
     char tagging format
@@ -148,13 +148,13 @@ def matching_pattern(sentence, pattern, word_dict):
     return dfs_matching(0, 0, [1])
 
 
-def count_pattern(text, pattern_list, word_dict, output_file="pattern_count_result.json"):
+def count_pattern(text, pattern_list, word_dict, output_file=PATTERN_COUNT_RESULT):
     """
     count sentence pattern in text
     """
     pattern_match_result = [{"pattern": pattern, "_example": []} for pattern in pattern_list]
 
-    sentence_list = [_ for _ in SENTENCE_FIND_REGEX.findall(text) if is_zh(_)]
+    sentence_list = SENTENCE_FIND_REGEX.findall(text)
     # count similarity
     for sentence in sentence_list:
         for p_idx in range(0, len(pattern_list)):
@@ -228,7 +228,7 @@ def test_count_pattern():
     word_dict = load_word_dict("tagged.txt")
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
     predict_tagging(text, pattern_list, word_dict)
-    word_dict.update(load_word_dict("auto_tagged.txt", has_weight=False))
+    word_dict.update(load_word_dict("auto_tagged.test.txt", has_weight=False))
 
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]],
                     [["N", 2], ["V", 1], ["N", 1]]]
@@ -240,7 +240,7 @@ def test_matching_pattern():
     word_dict = load_word_dict("tagged.txt")
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
     predict_tagging(text, pattern_list, word_dict)
-    word_dict.update(load_word_dict("auto_tagged.txt", has_weight=False))
+    word_dict.update(load_word_dict("auto_tagged.test.txt", has_weight=False))
 
     pattern = [["N", 2], ["之", 1], ["N", 2], ["也", 1]]
     print (matching_pattern("孔子之葉也", pattern, word_dict))
