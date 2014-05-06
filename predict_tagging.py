@@ -145,21 +145,22 @@ def matching_pattern(sentence, pattern, word_dict):
     return dfs_matching(0, 0, [1])
 
 
-def pattern_count(text, pattern_list, word_dict, output_file="pattern_count_result.json"):
+def count_pattern(text, pattern_list, word_dict, output_file="pattern_count_result.json"):
     """
     count sentence pattern in text
     """
-    pattern_match_result = defaultdict(list)
+    pattern_match_result = [{"pattern": pattern, "_example": []} for pattern in pattern_list]
 
     sentence_list = SENTENCE_FIND_REGEX.findall(text)
 
     # count similarity
     for sentence in sentence_list:
-        for pattern in pattern_list:
-            if match_pattern(sentence, pattern):
-                pattern_match_result[pattern].append(sentence)
+        for p_idx in range(0, len(pattern_list)):
+            if matching_pattern(sentence, pattern_list[p_idx], word_dict):
+                pattern_match_result[p_idx]["_example"].append(sentence)
 
-    json.dump(pattern_match_result, open(output_file, "w"))
+    if output_file:
+        json.dump(pattern_match_result, open(output_file, "w"))
 
     return pattern_match_result
 
@@ -197,8 +198,15 @@ def load_word_dict(word_tag_file, has_weight=True):
     return word_dict
 
 
-def test_pattern_count():
-    pass
+def test_count_pattern():
+    text = "孔子之葉也。此亦飛之至也。義之和也。"
+    word_dict = load_word_dict("tagged.txt")
+    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
+    predict_tagging(text, pattern_list, word_dict)
+    word_dict.update(load_word_dict("auto_tagged.txt", has_weight=False))
+
+    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
+    print (count_pattern(text, pattern_list, word_dict))
 
 
 def test_matching_pattern():
@@ -236,7 +244,8 @@ def main():
 if __name__ == "__main__":
     # test_find_tagable_char()
     # test_predict_tagging()
-    test_matching_pattern()
+    # test_matching_pattern()
+    test_count_pattern()
     # load_word_dict("tagged.txt")
     # pattern_list = load_pattern_list("pattern.test.json")
     # print (type(pattern_list), pattern_list)
