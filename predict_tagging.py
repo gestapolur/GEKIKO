@@ -58,14 +58,14 @@ def find_tagable_char(sentence, word_dict, pattern):
     return similarity_result
 
 
-def predict_tagging(text, word_dict, pattern_list):
+def predict_tagging(text, word_dict, pattern_list, output_file="auto_tagged.txt"):
     """
     tagging untagged char in a sentence
     """
     TAGGING_THRESHOLD = 0.3
     SENTENCE_FIND_REGEX = re.compile("(.+?)[，。]")
     sentence_list = SENTENCE_FIND_REGEX.findall(text)
-    tagged_dict = defaultdict(list)
+    tag_dict = defaultdict(list)
     """
     char tagging format
     "<char>": [pos_0, pos_1]
@@ -77,7 +77,6 @@ def predict_tagging(text, word_dict, pattern_list):
                 "pos_0": occurrance_0,
                 "pos_1": occurrance_1 ...}
     """
-
     # count similarity
     for sentence in sentence_list:
         for pattern in pattern_list:
@@ -99,18 +98,21 @@ def predict_tagging(text, word_dict, pattern_list):
     print (similar_char_pos_tag)
 
     # determine chars which should be tagged & tag to which pattern
-    for ch, pos in similar_char_pos_tag:
+    for ch, pos in similar_char_pos_tag.items():
         for pattern in pos:
-            print (pattern)
             if pattern != "total":
+                print (pattern, ch)
                 if pos[pattern] / pos["total"] > TAGGING_THRESHOLD:
                     tag_dict[ch].append(pattern)
 
     print (tag_dict)
     # output tagged dict
-    #with open("auto_tagged.txt", "w") as out:
-    #    for word in tagged_dict:
-    #        out.write("%s %s\n" % (word, tagged_dict[word]))
+    if output_file:
+        with open(output_file, "w") as out:
+            for char, tag in tag_dict.items():
+                out.write("%s %s\n" % (char, ",".join(tag)))
+
+    return tag_dict
 
 
 def load_pattern_list(pattern_file):
