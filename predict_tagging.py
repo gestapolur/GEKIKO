@@ -19,6 +19,7 @@ SENTENCE_FIND_REGEX = re.compile("([^，。？ ]+?)[，。？ ]")
 SUB_PUNC_REGEX = re.compile("[「」『』、；\n]")
 update_similarity = lambda origin_similarity, new_similarity: \
                            new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
+is_zh = (lambda x: True if 19968 <= ord(x) <= 40908 else False)
 
 
 def find_tagable_char(sentence, pattern, word_dict):
@@ -68,7 +69,7 @@ def predict_tagging(text, pattern_list, word_dict, output_file=AUTO_TAG_FILE):
 
     """
     TAGGING_THRESHOLD = 0.3
-    sentence_list = SENTENCE_FIND_REGEX.findall(text)
+    sentence_list = [_ for _ in SENTENCE_FIND_REGEX.findall(text) if is_zh(_)]
     tag_dict = defaultdict(list)
     """
     char tagging format
@@ -153,8 +154,7 @@ def count_pattern(text, pattern_list, word_dict, output_file="pattern_count_resu
     """
     pattern_match_result = [{"pattern": pattern, "_example": []} for pattern in pattern_list]
 
-    sentence_list = SENTENCE_FIND_REGEX.findall(text)
-
+    sentence_list = [_ for _ in SENTENCE_FIND_REGEX.findall(text) if is_zh(_)]
     # count similarity
     for sentence in sentence_list:
         for p_idx in range(0, len(pattern_list)):
@@ -217,19 +217,21 @@ def main():
     predict_tagging(text, pattern_list, word_dict)
     word_dict.update(load_word_dict(AUTO_TAG_FILE, has_weight=False))
 
+    # we use same pattern list currently as predict procedure
     count_pattern(text, pattern_list, word_dict)
 
 
 #-----------------------------TEST----------------------------------------
 
 def test_count_pattern():
-    text = "孔子之葉也。此亦飛之至也。義之和也。"
+    text = "孔子之葉也。此亦飛之至也。義之和也。王曰然。王曰善。"
     word_dict = load_word_dict("tagged.txt")
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
     predict_tagging(text, pattern_list, word_dict)
     word_dict.update(load_word_dict("auto_tagged.txt", has_weight=False))
 
-    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
+    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]],
+                    [["N", 2], ["V", 1], ["N", 1]]]
     print (count_pattern(text, pattern_list, word_dict))
 
 
