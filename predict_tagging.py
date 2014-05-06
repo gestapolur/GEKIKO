@@ -12,7 +12,10 @@ import json
 import re
 from collections import defaultdict
 
-update_similarity = lambda origin_similarity, new_similarity: new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
+
+update_similarity = lambda origin_similarity, new_similarity: \
+                           new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
+
 
 def find_tagable_char(sentence, word_dict, pattern):
 
@@ -22,23 +25,30 @@ def find_tagable_char(sentence, word_dict, pattern):
         """
         if p_idx >= len(pattern) or s_idx >= len(sentence):
             return [similarity_value, match_result]
-        print (s_idx, "current pattern position", p_idx, "pattern name", pattern[p_idx])
-        print (s_idx, p_idx, similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
+        print ("sen pos", s_idx, "ptn pos", p_idx, "pattern", pattern[p_idx], "char", sentence[s_idx])
+        print (similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
         if p_idx < len(pattern):
             #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
             if p_cnt < len(pattern[p_idx]) and (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
 		    pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
-                print (p_cnt, match_result, sentence[s_idx])
+                print ("match!", p_cnt, match_result, sentence[s_idx])
                 if not match_result:
                     match_result = [0]
                 temp_similarity_result = similarity(
                     s_idx+1, p_idx, p_cnt+1, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
                 new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
-            # not match, stay blank on this position
+            # not match, next pattern position, next char
             temp_similarity_result = similarity(
                 s_idx+1, p_idx+1, 0, similarity_value, match_result+[0])
-        new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
+            new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
+            # not match, next pattern position, current char
+            temp_similarity_result = similarity(
+                s_idx, p_idx+1, 0, similarity_value, match_result+[0])
+            new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
+
+
+        print (s_idx, p_idx, similarity_value, pattern[p_idx], sentence[s_idx], "result", new_similarity_result)
         return new_similarity_result
 
     # sentence has no similarity with pattern
