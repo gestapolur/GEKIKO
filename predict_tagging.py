@@ -1,19 +1,21 @@
 #!/bin/python3
 # -*- coding: utf-8 -*-
 """
-this module provide pattern predict feature which base on pattern
-
-count results.
+Scripts for Old Chinese pattern counting.
 
 pattern data saved in JSON format
 """
 
 import json
 import re
+import os
 from collections import defaultdict
 
 
-SENTENCE_FIND_REGEX = re.compile("(.+?)[，。]")
+PATTERN_FILE = "pattern.json"
+TAG_FILE = "tagged.txt"
+AUTO_TAG_FILE="auto_tagged.txt"
+SENTENCE_FIND_REGEX = re.compile("(.+?)[，。？]")
 update_similarity = lambda origin_similarity, new_similarity: \
                            new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
 
@@ -59,7 +61,7 @@ def find_tagable_char(sentence, pattern, word_dict):
     return similarity_result
 
 
-def predict_tagging(text, pattern_list, word_dict, output_file="auto_tagged.txt"):
+def predict_tagging(text, pattern_list, word_dict, output_file=AUTO_TAG_FILE):
     """
     tagging untagged char in a sentence then output to output_file
 
@@ -83,7 +85,7 @@ def predict_tagging(text, pattern_list, word_dict, output_file="auto_tagged.txt"
         for pattern in pattern_list:
              result = find_tagable_char(sentence, pattern, word_dict)
              print (result, len(pattern), sentence)
-             if len(sentence) - (result[0]) == 1: # similarity is 1
+             if result and len(sentence) - (result[0]) == 1: # similarity is 1
                  s_idx = 0
                  for p_idx in range(0, len(result[1])): # len(result[1]) == len(pattern)
                      if result[1][p_idx] == 0:
@@ -198,6 +200,26 @@ def load_word_dict(word_tag_file, has_weight=True):
     return word_dict
 
 
+def main():
+
+    text_files = [ "text/article/" + f for f in os.listdir("text/article/")]
+    text = ''
+    for _file in text_files:
+        text = text + ''.join(
+            [w for w in ''.join(
+                    [l for l in open(_file, "r")])])
+
+    word_dict = load_word_dict("tagged.txt")
+    pattern_list = load_pattern_list("pattern.test.json")
+
+    predict_tagging(text, pattern_list, word_dict)
+    word_dict.update(load_word_dict(AUTO_TAG_FILE, has_weight=False))
+
+    count_pattern(text, pattern_list, word_dict)
+
+
+#-----------------------------TEST----------------------------------------
+
 def test_count_pattern():
     text = "孔子之葉也。此亦飛之至也。義之和也。"
     word_dict = load_word_dict("tagged.txt")
@@ -237,15 +259,9 @@ def test_find_tagable_char():
     print (find_tagable_char("孔子之葉也", pattern, word_dict))
 
 
-def main():
-    pass
-
-
 if __name__ == "__main__":
     # test_find_tagable_char()
     # test_predict_tagging()
     # test_matching_pattern()
-    test_count_pattern()
-    # load_word_dict("tagged.txt")
-    # pattern_list = load_pattern_list("pattern.test.json")
-    # print (type(pattern_list), pattern_list)
+    # test_count_pattern()
+    main()
