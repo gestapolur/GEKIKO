@@ -15,7 +15,8 @@ from collections import defaultdict
 PATTERN_FILE = "pattern.json"
 TAG_FILE = "tagged.txt"
 AUTO_TAG_FILE="auto_tagged.txt"
-SENTENCE_FIND_REGEX = re.compile("(.+?)[，。？]")
+SENTENCE_FIND_REGEX = re.compile("([^，。？ ]+?)[，。？ ]")
+SUB_PUNC_REGEX = re.compile("[「」『』、；\n]")
 update_similarity = lambda origin_similarity, new_similarity: \
                            new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
 
@@ -136,7 +137,6 @@ def matching_pattern(sentence, pattern, word_dict):
             # match same tag first
             temp_result = dfs_matching(s_idx+1, p_idx, match_result[:-1]+[match_result[-1]+1])
             if not temp_result: # try to match new tag
-                print ("new match")
                 temp_result = dfs_matching(s_idx+1, p_idx+1, match_result+[1])
             return temp_result
         return False
@@ -194,6 +194,7 @@ def load_word_dict(word_tag_file, has_weight=True):
                 key, weight, tag = w.split(None, 2)
                 word_dict[key]['weight'] = int(weight)
             else:
+                print (w)
                 key, tag = w.split(None, 1)
             word_dict[key]['tag'] = tag.replace(' ', '').split(',')
 
@@ -208,6 +209,7 @@ def main():
         text = text + ''.join(
             [w for w in ''.join(
                     [l for l in open(_file, "r")])])
+    text = SUB_PUNC_REGEX.sub(" ", text)
 
     word_dict = load_word_dict("tagged.txt")
     pattern_list = load_pattern_list("pattern.test.json")
@@ -265,3 +267,4 @@ if __name__ == "__main__":
     # test_matching_pattern()
     # test_count_pattern()
     main()
+    # load_word_dict("auto_tagged.txt", has_weight=False)
