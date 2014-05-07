@@ -3,7 +3,6 @@
 """
 Scripts for Old Chinese pattern counting.
 
-pattern data saved in JSON format
 """
 
 import json
@@ -11,8 +10,8 @@ import re
 import os
 from collections import defaultdict
 
-
-PATTERN_FILE = "pattern.json"
+# pattern data saved in JSON format
+PATTERN_FILE = "pattern.test.json"
 TAG_FILE = "tagged.txt"
 AUTO_TAG_FILE="auto_tagged.txt"
 PATTERN_COUNT_RESULT = "pattern_count_result.json"
@@ -27,7 +26,7 @@ update_similarity = lambda origin_similarity, new_similarity: \
 
 def find_max_similarity(sentence, pattern, word_dict):
 
-    def similarity(s_idx, p_idx, continue_match, similarity_value, match_result):
+    def similarity(s_idx, p_idx, p_cnt, similarity_value, match_result):
         """
         find maximal simiarlity value
 
@@ -41,21 +40,23 @@ def find_max_similarity(sentence, pattern, word_dict):
             return None
 
         print ("sen pos", s_idx, "ptn pos", p_idx, "pattern", pattern[p_idx], "char", sentence[s_idx])
-        print (similarity_value, match_result, continue_match, sentence[s_idx], word_dict[sentence[s_idx]])
+        print (similarity_value, match_result, p_cnt, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
         #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
-        if (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or \
-                (pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
+        # not exceed maximal tag count
+        if p_cnt < pattern[p_idx][1] and \
+                ((pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or \
+                     (pattern[p_idx][0] == sentence[s_idx])): # pattern is a specific char
             print ("match!", match_result, sentence[s_idx], pattern[p_idx][0], word_dict[sentence[s_idx]].get("tag", []))
             # match, current pattern position, next char
             if pattern[p_idx][0] == sentence[s_idx]: # specific char can't continue
                 temp_similarity_result = similarity(
-                    s_idx+1, p_idx+1, False, similarity_value+1,
+                    s_idx+1, p_idx+1, 0, similarity_value+1,
                     match_result + [(sentence[s_idx], pattern[p_idx][0], 1)])
                     # match_result[:-1]+[[match_result[-1][0], match_result[-1][1]+1]])
             else:
                 temp_similarity_result = similarity(
-                    s_idx+1, p_idx, True, similarity_value+1,
+                    s_idx+1, p_idx, p_cnt+1, similarity_value+1,
                     match_result + [(sentence[s_idx], pattern[p_idx][0], 1)])
                     # match_result[:-1]+[[match_result[-1][0], match_result[-1][1]+1]])
             print ("matched result", temp_similarity_result)
@@ -63,15 +64,15 @@ def find_max_similarity(sentence, pattern, word_dict):
 
         # not match, ignore current tag, next pattern position, next char
         temp_similarity_result = similarity(
-            s_idx+1, p_idx+1, False, similarity_value,
+            s_idx+1, p_idx+1, 0, similarity_value,
             match_result + [(sentence[s_idx], pattern[p_idx][0], 0)])
         new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
-        if continue_match: # not match, current tag were matched, next pattern position, current char
+        if p_cnt: # not match, current tag were matched, next pattern position, current char
             """
-            only if in continue_match, we could switch tag, or some pattern may not be matched at last
+            only if p_cnt, we could switch tag, or some pattern may not be matched at last
             """
             temp_similarity_result = similarity(
-                s_idx, p_idx+1, False, similarity_value, match_result)
+                s_idx, p_idx+1, 0, similarity_value, match_result)
             new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
 
         # print (s_idx, p_idx, similarity_value, pattern[p_idx], sentence[s_idx], "result", new_similarity_result)
@@ -81,7 +82,7 @@ def find_max_similarity(sentence, pattern, word_dict):
     if len(sentence) < len(pattern) or len(sentence) > sum([_[1] for _ in pattern]):
         return None
     print ("sentence len:", len(sentence), "pattern len:", len(pattern))
-    similarity_result = similarity(0, 0, False, 0, [])
+    similarity_result = similarity(0, 0, 0, 0, [])
     return similarity_result
 
 
@@ -233,8 +234,8 @@ def load_corpus():
 def main():
     text = load_corpus()
 
-    word_dict = load_word_dict("tagged.txt")
-    pattern_list = load_pattern_list("pattern.json")
+    word_dict = load_word_dict(TAG_FILE)
+    pattern_list = load_pattern_list(PATTERN_FILE)
 
     predict_tagging(text, pattern_list, word_dict)
     word_dict.update(load_word_dict(AUTO_TAG_FILE, has_weight=False))
@@ -302,11 +303,14 @@ def test_find_max_similarity():
     assert (find_max_similarity(
             "梁惠王", pattern, word_dict) == [1, [('梁', 'A', 0), ('惠', '于', 0), ('王', 'N', 1)]])
 
+    pattern = [['N', 2], ['V', 1], ['于', 1], ['N', 2]]
+    assert (find_max_similarity("故能樂也", pattern, word_dict) ==\
+                [2, [('故', 'N', 1), ('能', 'V', 1), ('樂', '于', 0), ('也', 'N', 0)]])
+
 
 if __name__ == "__main__":
     # test_find_max_similarity()
-    test_predict_tagging()
+    # test_predict_tagging()
     # test_matching_pattern()
     # test_count_pattern()
-    # main()
-    # load_word_dict("auto_tagged.txt", has_weight=False)
+    main()
