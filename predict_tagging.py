@@ -44,8 +44,8 @@ def find_max_similarity(sentence, pattern, word_dict):
         print (similarity_value, match_result, continue_match, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
         #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
-        if (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
-            pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
+        if (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or \
+                (pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
             print ("match!", match_result, sentence[s_idx], pattern[p_idx][0], word_dict[sentence[s_idx]].get("tag", []))
             # match, current pattern position, next char
             if pattern[p_idx][0] == sentence[s_idx]: # specific char can't continue
