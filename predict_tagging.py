@@ -19,47 +19,62 @@ PATTERN_COUNT_RESULT = "pattern_count_result.json"
 SENTENCE_FIND_REGEX = re.compile("([^，。？ ]+?)[，。？ 　]")
 SUB_PUNC_REGEX = re.compile("[　「」『』、；\n]")
 update_similarity = lambda origin_similarity, new_similarity: \
-                           new_similarity if new_similarity[0] > origin_similarity[0] else origin_similarity
+                           new_similarity if new_similarity and \
+                           (new_similarity[0] > origin_similarity[0] or \
+                           (new_similarity[0] == origin_similarity[0] and \
+                                new_similarity[1] > origin_similarity[1])) else origin_similarity
 
 
 def find_tagable_char(sentence, pattern, word_dict):
 
-    def similarity(s_idx, p_idx, p_cnt, similarity_value, match_result):
+    def similarity(s_idx, p_idx, continue_match, similarity_value, match_result):
         """
         find maximal simiarlity value
+
+        sum(_ if _ else 1 for _ in match_result) == len(sentence)
         """
-        if p_idx >= len(pattern) or s_idx >= len(sentence):
+        # if we meet a match, we end it, to 
+        if p_idx >= len(pattern) - 1 and s_idx == len(sentence):
+            print ("result", similarity_value, match_result)
             return [similarity_value, match_result]
-        # print ("sen pos", s_idx, "ptn pos", p_idx, "pattern", pattern[p_idx], "char", sentence[s_idx])
-        # print (similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
+        elif p_idx == len(pattern) or s_idx == len(sentence):
+            return None
+
+        print ("sen pos", s_idx, "ptn pos", p_idx, "pattern", pattern[p_idx], "char", sentence[s_idx])
+        print (similarity_value, match_result, sentence[s_idx], word_dict[sentence[s_idx]])
         new_similarity_result = [similarity_value, match_result]
-        if p_idx < len(pattern):
-            #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
-            if p_cnt < len(pattern[p_idx]) and (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
-		    pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
-                # print ("match!", p_cnt, match_result, sentence[s_idx])
-                if not match_result:
-                    match_result = [0]
+        #print (sentence[s_idx], pattern[p_idx+p_cnt][0], '!')
+        if (pattern[p_idx][0] in word_dict[sentence[s_idx]].get("tag", [])) or (
+            pattern[p_idx][0] == sentence[s_idx]): # pattern is a specific char
+            print ("match!", match_result, sentence[s_idx], pattern[p_idx][0], word_dict[sentence[s_idx]].get("tag", []))
+            # match, current pattern position, next char
+            if continue_match:
                 temp_similarity_result = similarity(
-                    s_idx+1, p_idx, p_cnt+1, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
-                new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
-            # not match, next pattern position, next char
-            temp_similarity_result = similarity(
-                s_idx+1, p_idx+1, 0, similarity_value, match_result+[0])
+                    s_idx+1, p_idx, True, similarity_value+1, match_result[:-1]+[match_result[-1]+1])
+            else:
+                temp_similarity_result = similarity(
+                    s_idx+1, p_idx, True, similarity_value+1, match_result + [1])                
+            print ("matched result", temp_similarity_result)
             new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
-            # not match, next pattern position, current char
+
+        # not match, next pattern position, next char
+        temp_similarity_result = similarity(
+            s_idx+1, p_idx+1, False, similarity_value, match_result+[0])
+        new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
+        # not match, next pattern position, current char
+        if continue_match:
             temp_similarity_result = similarity(
-                s_idx, p_idx+1, 0, similarity_value, match_result+[0])
+                s_idx, p_idx+1, False, similarity_value, match_result)
             new_similarity_result = update_similarity(new_similarity_result, temp_similarity_result)
 
         # print (s_idx, p_idx, similarity_value, pattern[p_idx], sentence[s_idx], "result", new_similarity_result)
         return new_similarity_result
 
     # sentence has no similarity with pattern
-    if len(sentence) < len(pattern):
+    if len(sentence) < len(pattern) or len(sentence) > sum([_[1] for _ in pattern]):
         return None
     print ("sentence len:", len(sentence), "pattern len:", len(pattern))
-    similarity_result = similarity(0, 0, 0, 0, [])
+    similarity_result = similarity(0, 0, False, 0, [])
     return similarity_result
 
 
@@ -86,11 +101,12 @@ def predict_tagging(text, pattern_list, word_dict, output_file=AUTO_TAG_FILE):
     for sentence in sentence_list:
         for pattern in pattern_list:
              result = find_tagable_char(sentence, pattern, word_dict)
-             print (result, len(pattern), sentence)
-             if result and len(sentence) - (result[0]) == 1: # similarity is 1
+             print (result, len(pattern), pattern, sentence)
+             if result and (len(sentence) - result[0] == 1): # similarity is 1
                  s_idx = 0
                  for p_idx in range(0, len(result[1])): # len(result[1]) == len(pattern)
                      if result[1][p_idx] == 0:
+                         assert sentence[s_idx] in word_dict
                          ch = sentence[s_idx]
                          if not similar_char_pos_tag.get(ch):
                              similar_char_pos_tag[ch] = defaultdict(int)
@@ -142,7 +158,7 @@ def matching_pattern(sentence, pattern, word_dict):
             return temp_result
         return False
 
-    if len(sentence) < len(pattern):
+    if len(sentence) < len(pattern) or len(sentence) > sum([_[1] for _ in pattern]):
         return False
 
     return dfs_matching(0, 0, [1])
@@ -201,18 +217,21 @@ def load_word_dict(word_tag_file, has_weight=True):
     return word_dict
 
 
-def main():
-
+def load_corpus():
     text_files = [ "text/article/" + f for f in os.listdir("text/article/")]
     text = ''
     for _file in text_files:
         text = text + ''.join(
             [w for w in ''.join(
                     [l for l in open(_file, "r")])])
-    text = SUB_PUNC_REGEX.sub(" ", text)
+    return SUB_PUNC_REGEX.sub(" ", text)
+
+
+def main():
+    text = load_corpus()
 
     word_dict = load_word_dict("tagged.txt")
-    pattern_list = load_pattern_list("pattern.test.json")
+    pattern_list = load_pattern_list("pattern.test.2.json")
 
     predict_tagging(text, pattern_list, word_dict)
     word_dict.update(load_word_dict(AUTO_TAG_FILE, has_weight=False))
@@ -224,10 +243,10 @@ def main():
 #-----------------------------TEST----------------------------------------
 
 def test_count_pattern():
-    text = "孔子之葉也。此亦飛之至也。義之和也。王曰然。王曰善。"
+    text = "孔子之葉也。此亦飛之至也。義之和也。王曰然。王曰善。百姓親。"
     word_dict = load_word_dict("tagged.txt")
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
-    predict_tagging(text, pattern_list, word_dict)
+    predict_tagging(text, pattern_list, word_dict, output_file="auto_tagged.test.txt")
     word_dict.update(load_word_dict("auto_tagged.test.txt", has_weight=False))
 
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]],
@@ -239,18 +258,23 @@ def test_matching_pattern():
     text = "孔子之葉也。此亦飛之至也。義之和也。"
     word_dict = load_word_dict("tagged.txt")
     pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
-    predict_tagging(text, pattern_list, word_dict)
+    predict_tagging(text, pattern_list, word_dict, output_file="auto_tagged.test.txt")
     word_dict.update(load_word_dict("auto_tagged.test.txt", has_weight=False))
 
     pattern = [["N", 2], ["之", 1], ["N", 2], ["也", 1]]
     print (matching_pattern("孔子之葉也", pattern, word_dict))
 
+    pattern = [["N", 2], ["V", 1], ["N", 2]]
+    print (word_dict["百"], word_dict["姓"], word_dict["親"])
+    print (matching_pattern("百姓親", pattern, word_dict))
+
 
 def test_predict_tagging():
-    text = "孔子之葉也。此亦飛之至也。義之和也。"
+    text = "孔子之葉也。此亦飛之至也。義之和也。梁惠王。"
     word_dict = load_word_dict("tagged.txt")
-    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]]]
-    predict_tagging(text, pattern_list, word_dict)
+    pattern_list = [[["N", 2], ["之", 1], ["N", 2], ["也", 1]],
+                    [['A', 1], ['于', 1], ['N', 2]]]
+    predict_tagging(text, pattern_list, word_dict, output_file="auto_tagged.test.txt")
 
 
 def test_find_tagable_char():
@@ -262,11 +286,14 @@ def test_find_tagable_char():
     pattern = [["N", 2], ["之", 1], ["N", 2], ["也", 1]]
     print (find_tagable_char("孔子之葉也", pattern, word_dict))
 
+    pattern = [['A', 1], ['于', 1], ['N', 2]]
+    print (find_tagable_char("梁惠王", pattern, word_dict))
+
 
 if __name__ == "__main__":
-    # test_find_tagable_char()
+    test_find_tagable_char()
     # test_predict_tagging()
     # test_matching_pattern()
     # test_count_pattern()
-    main()
+    # main()
     # load_word_dict("auto_tagged.txt", has_weight=False)
