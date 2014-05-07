@@ -107,20 +107,17 @@ def predict_tagging(text, pattern_list, word_dict, output_file=AUTO_TAG_FILE):
     # count similarity
     for sentence in sentence_list:
         for pattern in pattern_list:
-             result = find_tagable_char(sentence, pattern, word_dict)
+             result = find_max_similarity(sentence, pattern, word_dict)
              print (result, len(pattern), pattern, sentence)
              if result and (len(sentence) - result[0] == 1): # similarity is 1
-                 s_idx = 0
-                 for p_idx in range(0, len(result[1])): # len(result[1]) == len(pattern)
-                     if result[1][p_idx] == 0:
-                         ch = sentence[s_idx]
-                         if not similar_char_pos_tag.get(ch):
-                             similar_char_pos_tag[ch] = defaultdict(int)
-                         similar_char_pos_tag[ch]["total"] += 1
-                         similar_char_pos_tag[ch][pattern[p_idx][0]] += 1
+                 assert len(result[1]) == len(sentence)
+                 for char, tag, is_tagged in result[1]:
+                     if not is_tagged:
+                         if not similar_char_pos_tag.get(char):
+                             similar_char_pos_tag[char] = defaultdict(int)
+                         similar_char_pos_tag[char]["total"] += 1
+                         similar_char_pos_tag[char][tag] += 1
                          break
-                     else:
-                         s_idx += result[1][p_idx]
 
     print (similar_char_pos_tag)
 
@@ -307,8 +304,8 @@ def test_find_max_similarity():
 
 
 if __name__ == "__main__":
-    test_find_max_similarity()
-    # test_predict_tagging()
+    # test_find_max_similarity()
+    test_predict_tagging()
     # test_matching_pattern()
     # test_count_pattern()
     # main()
